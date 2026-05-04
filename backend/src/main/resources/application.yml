@@ -1,0 +1,47 @@
+#spring.application.name=erpWithLCNC
+#spring.datasource.url=jdbc:postgresql://localhost:5432/erpwithlcnc
+#spring.datasource.username=postgres
+#spring.datasource.password=your_password_here
+#spring.datasource.driver-class-name=org.postgresql.Driver
+#
+#spring.jpa.hibernate.ddl-auto=update
+#spring.jpa.show-sql=true
+#spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+spring:
+  application:
+    name: erpWithLCNC
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/erpwithlcnc
+    username: postgres
+    password: 12345678
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+
+  jpa:
+    hibernate:
+      ddl-auto: update        # Flyway manages DDL ? never use create/update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: public
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+app:
+  jwt:
+    secret: your-256-bit-secret-change-this-in-production
+    expiration-ms: 86400000   # 24 hours
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
