@@ -22,8 +22,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
         SELECT p FROM Product p
         WHERE p.active = true
         AND (:search IS NULL
-             OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%'))
-             OR LOWER(p.sku)  LIKE LOWER(CONCAT('%', :search, '%')))
+             OR LOWER(p.name) LIKE :search
+             OR LOWER(p.sku)  LIKE :search)
+
         AND (:categoryId IS NULL OR p.category.id = :categoryId)
         """)
     Page<Product> searchProducts(
@@ -31,6 +32,7 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
             @Param("categoryId") UUID categoryId,
             Pageable pageable
     );
+
 
     // Fixed: JOIN through the relationship field s.product, not ON s.product = p
     @Query("""

@@ -1,16 +1,16 @@
 package com.example.erpWithLCNC.modules.auth.repository;
 
-import com.example.erpWithLCNC.modules.inventory.entity.Category;
+import com.example.erpWithLCNC.modules.auth.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface RoleRepository extends JpaRepository<Category, UUID> {
+public interface RoleRepository extends JpaRepository<Role, UUID> {
 
-    List<Category> findByActiveTrue();
+    Optional<Role> findByName(String name);
 
     boolean existsByName(String name);
-}
+}

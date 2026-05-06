@@ -71,10 +71,13 @@ public class AuthService {
     }
 
     public Page<UserResponse> getUsers(String search, int page, int size) {
+        String searchPattern = (search != null && !search.trim().isEmpty()) ? "%" + search.toLowerCase() + "%" : null;
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("fullName").ascending());
-        return userRepository.searchUsers(search, pageable)
+        return userRepository.searchUsers(searchPattern, pageable)
                 .map(userMapper::toResponse);
     }
+
 
     public UserResponse getUser(java.util.UUID id) {
         return userRepository.findById(id)

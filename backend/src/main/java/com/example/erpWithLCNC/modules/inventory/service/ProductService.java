@@ -33,10 +33,12 @@ public class ProductService {
 
     public Page<ProductResponse> getProducts(String search, UUID categoryId,
                                              int page, int size, String sortBy) {
+        String searchPattern = (search != null && !search.trim().isEmpty()) ? "%" + search + "%" : null;
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        return productRepository.searchProducts(search, categoryId, pageable)
+        return productRepository.searchProducts(searchPattern, categoryId, pageable)
                 .map(productMapper::toResponse);
     }
+
 
     public ProductResponse getProduct(UUID id) {
         return productRepository.findById(id)

@@ -22,8 +22,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
         SELECT u FROM User u
         WHERE u.active = true
         AND (:search IS NULL
-             OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%'))
-             OR LOWER(u.email)    LIKE LOWER(CONCAT('%', :search, '%')))
+             OR LOWER(u.fullName) LIKE :search
+             OR LOWER(u.email)    LIKE :search)
+
         """)
     Page<User> searchUsers(@Param("search") String search, Pageable pageable);
+
 }
