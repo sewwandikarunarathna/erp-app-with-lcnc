@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.erpWithLCNC.modules.inventory.entity.Category;
 import com.example.erpWithLCNC.modules.inventory.repository.CategoryRepository;
+import com.example.erpWithLCNC.modules.lcnc.service.LcncService;
 
 import java.util.UUID;
 
@@ -30,20 +31,29 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
+    private final LcncService lcncService;
 
     public Page<ProductResponse> getProducts(String search, UUID categoryId,
                                              int page, int size, String sortBy) {
         String searchPattern = (search != null && !search.trim().isEmpty()) ? "%" + search + "%" : null;
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        
         return productRepository.searchProducts(searchPattern, categoryId, pageable)
-                .map(productMapper::toResponse);
+                .map(product -> {
+                    ProductResponse response = productMapper.toResponse(product);
+                    response.setCustomFields(lcncService.getExtendedData("product", product.getId()));
+                    return response;
+                });
     }
 
 
     public ProductResponse getProduct(UUID id) {
-        return productRepository.findById(id)
-                .map(productMapper::toResponse)
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + id));
+        
+        ProductResponse response = productMapper.toResponse(product);
+        response.setCustomFields(lcncService.getExtendedData("product", id));
+        return response;
     }
 
     @Transactional
@@ -60,8 +70,16 @@ public class ProductService {
         }
 
         product = productRepository.save(product);
+        
+        // Save LCNC extended fields
+        if (request.getCustomFields() != null) {
+            lcncService.saveExtendedData("product", product.getId(), request.getCustomFields());
+        }
+
         log.info("Product created: {} ({})", product.getName(), product.getSku());
-        return productMapper.toResponse(product);
+        ProductResponse response = productMapper.toResponse(product);
+        response.setCustomFields(request.getCustomFields());
+        return response;
     }
 
     @Transactional
@@ -75,7 +93,24 @@ public class ProductService {
             throw new BusinessException("SKU already in use: " + request.getSku());
 
         productMapper.updateEntity(request, product);
-        return productMapper.toResponse(productRepository.save(product));
+
+        if (request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+            product.setCategory(category);
+        } else {
+            product.setCategory(null);
+        }
+
+        product = productRepository.save(product);
+
+        if (request.getCustomFields() != null) {
+            lcncService.saveExtendedData("product", product.getId(), request.getCustomFields());
+        }
+
+        ProductResponse response = productMapper.toResponse(product);
+        response.setCustomFields(request.getCustomFields());
+        return response;
     }
 
     @Transactional

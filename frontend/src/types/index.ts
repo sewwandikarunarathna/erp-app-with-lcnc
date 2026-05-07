@@ -24,7 +24,10 @@ export interface Product {
   unitOfMeasure: string;
   active: boolean;
   categoryName?: string;
+  categoryId?: string;
+  reorderPoint?: number;
   currentStock?: number;
+  customFields?: Record<string, any>;
 }
 
 export interface ApiResponse<T> {

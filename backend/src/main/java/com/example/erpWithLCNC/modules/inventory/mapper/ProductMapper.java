@@ -9,6 +9,7 @@ import org.mapstruct.*;
 public interface ProductMapper {
 
     @Mapping(target = "categoryName", source = "category.name")
+    @Mapping(target = "categoryId", source = "category.id")
     @Mapping(target = "currentStock", ignore = true)
     ProductResponse toResponse(Product product);
 
@@ -19,6 +20,7 @@ public interface ProductMapper {
     @Mapping(target = "createdBy", ignore = true)
     Product toEntity(ProductRequest request);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

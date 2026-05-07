@@ -17,8 +17,9 @@ import { DashboardOverview } from '../features/dashboard/DashboardOverview';
 import { InventoryView } from '../features/inventory/InventoryView';
 import { UsersView } from '../features/users/UsersView';
 import { PlaceholderView } from '../features/shared/PlaceholderView';
+import { LCNCConfigView } from '../features/lcnc/LCNCConfigView';
 
-type ViewType = 'dashboard' | 'inventory' | 'sales' | 'users' | 'settings';
+type ViewType = 'dashboard' | 'inventory' | 'sales' | 'users' | 'settings' | 'lcnc';
 
 const Dashboard: React.FC = () => {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
@@ -57,6 +58,8 @@ const Dashboard: React.FC = () => {
           title="Settings & Config" 
           description="Configure system preferences, user roles, and security policies." 
         />;
+      case 'lcnc':
+        return <LCNCConfigView />;
       default:
         return <DashboardOverview />;
     }
@@ -71,7 +74,7 @@ const Dashboard: React.FC = () => {
             <Rocket className="w-6 h-6 text-white" />
           </div>
           <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-            ERP Nexus
+            ERP LCNC
           </span>
         </div>
 
@@ -106,6 +109,16 @@ const Dashboard: React.FC = () => {
             active={activeView === 'settings'} 
             onClick={() => setActiveView('settings')}
           />
+          <div className="px-4 py-2">
+            <div className="h-px bg-slate-800 mb-2"></div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-2">LCNC Tools</p>
+            <NavItem 
+              icon={<Rocket className="w-4 h-4" />} 
+              label="Form Config" 
+              active={activeView === 'lcnc'} 
+              onClick={() => setActiveView('lcnc')}
+            />
+          </div>
         </nav>
 
         <div className="p-4 border-t border-slate-800">
@@ -143,10 +156,6 @@ const Dashboard: React.FC = () => {
             <button className="p-2 hover:bg-slate-800 rounded-full text-slate-400 relative">
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary-500 rounded-full border-2 border-slate-900"></span>
-            </button>
-            <button className="btn-primary flex items-center gap-2 text-sm font-medium">
-              <Plus className="w-4 h-4" />
-              New Action
             </button>
           </div>
         </header>

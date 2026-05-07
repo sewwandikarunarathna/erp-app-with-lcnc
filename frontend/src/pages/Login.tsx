@@ -40,7 +40,7 @@ const Login: React.FC = () => {
           <div className="w-16 h-16 bg-primary-600/20 rounded-2xl flex items-center justify-center mb-4 border border-primary-500/30">
             <Rocket className="w-8 h-8 text-primary-500" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">ERP Nexus</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">ERP LCNC</h1>
           <p className="text-slate-400 mt-2">Sign in to your enterprise portal</p>
         </div>
 

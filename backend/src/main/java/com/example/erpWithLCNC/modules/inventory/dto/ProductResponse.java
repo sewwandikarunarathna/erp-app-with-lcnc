@@ -17,6 +17,7 @@ public class ProductResponse {
     private String name;
     private String description;
     private String categoryName;
+    private UUID categoryId;
     private String unitOfMeasure;
     private BigDecimal costPrice;
     private BigDecimal sellingPrice;
@@ -26,4 +27,6 @@ public class ProductResponse {
 
     // current stock (joined via query, not a relation)
     private BigDecimal currentStock;
+
+    private java.util.Map<String, Object> customFields;
 }

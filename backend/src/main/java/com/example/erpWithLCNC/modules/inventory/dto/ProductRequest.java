@@ -34,5 +34,7 @@ public class ProductRequest {
     private BigDecimal sellingPrice;
 
     private Integer reorderPoint;
+    private Boolean active = true;
+    private java.util.Map<String, Object> customFields;
 }
 

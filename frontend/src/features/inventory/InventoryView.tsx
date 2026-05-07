@@ -2,24 +2,45 @@ import React, { useEffect, useState } from 'react';
 import { Package, Search, Filter, ArrowUpRight } from 'lucide-react';
 import api from '../../api/axios';
 import type { Product, ApiResponse, PageResponse } from '../../types';
+import { Modal } from '../shared/Modal';
+import { ProductForm } from './components/ProductForm';
 
 export const InventoryView: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(undefined);
+
+  const fetchInventory = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get<ApiResponse<PageResponse<Product>>>('/inventory/products?size=20');
+      setProducts(response.data.data.content);
+    } catch (err) {
+      console.error('Failed to fetch inventory', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchInventory = async () => {
-      try {
-        const response = await api.get<ApiResponse<PageResponse<Product>>>('/inventory/products?size=20');
-        setProducts(response.data.data.content);
-      } catch (err) {
-        console.error('Failed to fetch inventory', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchInventory();
   }, []);
+
+  const handleAddProduct = () => {
+    setSelectedProduct(undefined);
+    setIsDialogOpen(true);
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setSelectedProduct(product);
+    setIsDialogOpen(true);
+  };
+
+  const handleSuccess = () => {
+    setIsDialogOpen(false);
+    fetchInventory();
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -28,7 +49,10 @@ export const InventoryView: React.FC = () => {
           <h2 className="text-2xl font-bold text-white">Inventory Management</h2>
           <p className="text-slate-400 text-sm">Monitor and manage your stock levels</p>
         </div>
-        <button className="btn-primary flex items-center gap-2">
+        <button 
+          onClick={handleAddProduct}
+          className="btn-primary flex items-center gap-2"
+        >
           <Package className="w-4 h-4" />
           Add Product
         </button>
@@ -90,7 +114,10 @@ export const InventoryView: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-slate-500 hover:text-primary-400 p-1">
+                    <button 
+                      onClick={() => handleEditProduct(product)}
+                      className="text-slate-500 hover:text-primary-400 p-1 transition-colors"
+                    >
                       <ArrowUpRight className="w-4 h-4" />
                     </button>
                   </td>
@@ -100,6 +127,18 @@ export const InventoryView: React.FC = () => {
           </table>
         </div>
       </div>
+
+      <Modal
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        title={selectedProduct ? 'Edit Product' : 'Add New Product'}
+      >
+        <ProductForm 
+          product={selectedProduct}
+          onSuccess={handleSuccess}
+          onCancel={() => setIsDialogOpen(false)}
+        />
+      </Modal>
     </div>
   );
 };
