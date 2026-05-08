@@ -6,7 +6,7 @@ import { ToastProvider } from './features/shared/ToastContext';
 
 function App() {
   return (
-    <ToastProvider>
+    <ToastProvider >
       <Router>
         <Routes>
           <Route path="/" element={<Login />} />

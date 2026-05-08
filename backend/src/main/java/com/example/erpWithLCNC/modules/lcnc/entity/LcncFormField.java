@@ -38,14 +38,17 @@ public class LcncFormField {
     private String defaultValue;
 
     @Column(name = "is_required")
-    private boolean required;
+    private Boolean required;
 
     @Column(name = "sort_order")
     private int sortOrder;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    private JsonNode validation;
+    private Object validation;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    private JsonNode options;
+    private Object options;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Object metadata;
 }

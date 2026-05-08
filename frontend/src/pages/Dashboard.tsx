@@ -18,12 +18,22 @@ import { InventoryView } from '../features/inventory/InventoryView';
 import { UsersView } from '../features/users/UsersView';
 import { PlaceholderView } from '../features/shared/PlaceholderView';
 import { LCNCConfigView } from '../features/lcnc/LCNCConfigView';
+import { DynamicFormView } from '../features/lcnc/DynamicFormView';
+import api from '../api/axios';
+import type { ApiResponse } from '../types';
 
-type ViewType = 'dashboard' | 'inventory' | 'sales' | 'users' | 'settings' | 'lcnc';
+type ViewType = 'dashboard' | 'inventory' | 'sales' | 'users' | 'settings' | 'lcnc' | string;
+
+interface FormShort {
+  formKey: string;
+  name: string;
+  formType: 'SYSTEM' | 'CUSTOM';
+}
 
 const Dashboard: React.FC = () => {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [user, setUser] = useState<any>(null);
+  const [customForms, setCustomForms] = useState<FormShort[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,7 +43,17 @@ const Dashboard: React.FC = () => {
       return;
     }
     setUser(JSON.parse(storedUser));
+    fetchCustomForms();
   }, [navigate]);
+
+  const fetchCustomForms = async () => {
+    try {
+      const response = await api.get<ApiResponse<FormShort[]>>('/lcnc/forms');
+      setCustomForms(response.data.data.filter(f => f.formType === 'CUSTOM'));
+    } catch (err) {
+      console.error('Failed to fetch sidebar forms', err);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -41,6 +61,11 @@ const Dashboard: React.FC = () => {
   };
 
   const renderContent = () => {
+    if (activeView.startsWith('dynamic:')) {
+      const formKey = activeView.split(':')[1];
+      return <DynamicFormView formKey={formKey} />;
+    }
+
     switch (activeView) {
       case 'dashboard':
         return <DashboardOverview />;
@@ -78,43 +103,63 @@ const Dashboard: React.FC = () => {
           </span>
         </div>
 
-        <nav className="flex-1 px-4 space-y-2 py-4">
-          <NavItem 
-            icon={<LayoutDashboard />} 
-            label="Dashboard" 
-            active={activeView === 'dashboard'} 
-            onClick={() => setActiveView('dashboard')}
-          />
-          <NavItem 
-            icon={<Package />} 
-            label="Inventory" 
-            active={activeView === 'inventory'} 
-            onClick={() => setActiveView('inventory')}
-          />
-          <NavItem 
-            icon={<ShoppingCart />} 
-            label="Sales" 
-            active={activeView === 'sales'} 
-            onClick={() => setActiveView('sales')}
-          />
-          <NavItem 
-            icon={<Users />} 
-            label="Users" 
-            active={activeView === 'users'} 
-            onClick={() => setActiveView('users')}
-          />
-          <NavItem 
-            icon={<Settings />} 
-            label="Settings" 
-            active={activeView === 'settings'} 
-            onClick={() => setActiveView('settings')}
-          />
-          <div className="px-4 py-2">
-            <div className="h-px bg-slate-800 mb-2"></div>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-2">LCNC Tools</p>
+        <nav className="flex-1 px-4 space-y-1 py-4 overflow-y-auto custom-scrollbar">
+          <div className="mb-4">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-2">Main Menu</p>
+            <NavItem 
+              icon={<LayoutDashboard />} 
+              label="Dashboard" 
+              active={activeView === 'dashboard'} 
+              onClick={() => setActiveView('dashboard')}
+            />
+            <NavItem 
+              icon={<Package />} 
+              label="Inventory" 
+              active={activeView === 'inventory'} 
+              onClick={() => setActiveView('inventory')}
+            />
+            <NavItem 
+              icon={<ShoppingCart />} 
+              label="Sales" 
+              active={activeView === 'sales'} 
+              onClick={() => setActiveView('sales')}
+            />
+            <NavItem 
+              icon={<Users />} 
+              label="Users" 
+              active={activeView === 'users'} 
+              onClick={() => setActiveView('users')}
+            />
+          </div>
+
+          {customForms.length > 0 && (
+            <div className="mb-4">
+              <div className="h-px bg-slate-800/50 mx-4 mb-4"></div>
+              <p className="text-[10px] font-bold text-primary-500 uppercase tracking-widest px-4 mb-2">Operations</p>
+              {customForms.map(form => (
+                <NavItem 
+                  key={form.formKey}
+                  icon={<Plus className="w-4 h-4" />} 
+                  label={form.name} 
+                  active={activeView === `dynamic:${form.formKey}`} 
+                  onClick={() => setActiveView(`dynamic:${form.formKey}`)}
+                />
+              ))}
+            </div>
+          )}
+
+          <div className="mb-4">
+            <div className="h-px bg-slate-800/50 mx-4 mb-4"></div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-2">Administration</p>
+            <NavItem 
+              icon={<Settings />} 
+              label="Settings" 
+              active={activeView === 'settings'} 
+              onClick={() => setActiveView('settings')}
+            />
             <NavItem 
               icon={<Rocket className="w-4 h-4" />} 
-              label="Form Config" 
+              label="Form Designer" 
               active={activeView === 'lcnc'} 
               onClick={() => setActiveView('lcnc')}
             />

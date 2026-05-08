@@ -29,7 +29,7 @@ public class LcncForm {
     private String formType; // 'SYSTEM', 'CUSTOM'
 
     @Column(name = "is_active")
-    private boolean active = true;
+    private Boolean active = true;
 
     @OneToMany(mappedBy = "form", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LcncFormField> fields;

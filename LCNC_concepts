@@ -431,3 +431,87 @@ Every field type needs a consistent definition understood by all three layers:
 3. **Complex Validations**: Implementing cross-field validation (e.g., 'Field A must be greater than Field B') in a dynamic way requires a more robust expression evaluator (like SpEL in backend and a safe JS evaluator in frontend).
 4. **Performance Overhead**: Fetching schemas and extended data for every record in a large list can be slow. Implementation of an efficient caching layer (e.g., Redis for schemas) is crucial as the system scales.
 
+## Soltion to Challenges no.2
+Listed directory erp-with-LCNC
+Viewed LCNC_concepts:1-434
+Searched for "entity_extended_data"
+Listed directory lcnc
+Listed directory service
+Viewed LcncService.java:1-86
+Viewed LcncFormField.java:1-52
+Viewed LcncEntityExtendedDataRepository.java:1-13
+
+To handle data consistency in an LCNC (Low-Code/No-Code) system when fields are modified, you need a **Dynamic Data Migration Engine**. 
+
+When an admin changes a field definition (e.g., renames `price` to `unit_price` or changes a `TEXT` field to `NUMBER`), the database records in `entity_extended_data` (sidecar data) or `form_submissions` (JSONB blobs) become "orphaned" because they still use the old key or store the wrong data type.
+
+### The Strategy: "Detect, Plan, Migrate"
+
+The key to a robust migration tool is treating schema changes as **transactions** that involve both metadata (the field definition) and the data itself.
+
+#### 1. Change Detection (Tracking by ID)
+Instead of just replacing fields, you must track them using a persistent `UUID`.
+*   **Rename**: If `id` remains the same but `fieldKey` changes.
+*   **Type Change**: If `id` remains the same but `fieldType` changes.
+*   **Deletion**: If an `id` present in the old schema is missing in the new one.
+
+#### 2. Migration Lifecycle
+1.  **Diff Generation**: Calculate what changed between the current schema and the proposed update.
+2.  **Impact Analysis**: Query the database to see how many records are affected.
+3.  **Migration Execution**: Run bulk SQL updates to transform the data.
+
+---
+
+### Implementation Guide
+
+I have drafted a detailed implementation plan for an `LcncMigrationService` that handles these scenarios using high-performance PostgreSQL JSONB operations.
+
+[LCNC Data Migration Implementation Plan](file:///C:/Users/Rizer/Documents/Rizerr/erp-with-LCNC/LCNC_migration_plan.md)
+
+```java
+// Conceptual example of a Migration Step
+@Transactional
+public void migrateFieldRename(String entityName, String oldKey, String newKey) {
+    // 1. Update the sidecar table (entity_extended_data)
+    extendedDataRepository.renameFieldKey(entityName, oldKey, newKey);
+    
+    // 2. Update JSONB blobs in submissions (form_submissions)
+    submissionRepository.renameJsonKey(entityName, oldKey, newKey);
+}
+```
+
+### 1. Handling Field Renames (SQL)
+To rename a key in a JSONB column across thousands of records efficiently, use PostgreSQL's `jsonb_set`:
+
+```sql
+-- Rename 'old_key' to 'new_key' in a JSONB column named 'data'
+UPDATE form_submissions 
+SET data = (data - 'old_key') || jsonb_build_object('new_key', data->'old_key')
+WHERE form_id = :formId AND data ? 'old_key';
+```
+
+### 2. Handling Type Conversions
+If a field changes from `TEXT` to `NUMBER`, you can attempt a bulk cast, while flagging errors:
+
+```sql
+-- Convert string to number, but only if it's a valid numeric string
+UPDATE entity_extended_data
+SET field_value = to_jsonb((field_value#>>'{}')::numeric),
+    updated_at = NOW()
+WHERE field_key = :fieldKey 
+  AND field_value#>>'{}' ~ '^[0-9.]+$'; -- Regex to ensure it's numeric
+```
+
+### 3. Recommendation: The "Staging" UI
+Don't apply these changes silently. Provide a UI for the Admin that says:
+> "Renaming 'Cost' to 'Unit Price' will affect **450** records. Changing type to **Number** will fail for **3** records (invalid data). Do you want to proceed?"
+
+Would you like me to implement the actual migration service class in your Spring Boot backend? I can start by adding the necessary repository methods.
+
+---
+
+### Summary of proposed changes:
+- Created an implementation plan artifact: `LCNC_migration_plan.md`.
+- Explained the "Persistent ID" strategy for tracking renames.
+- Provided SQL patterns for bulk JSONB updates.
+- Suggested an "Impact Analysis" workflow for the UI.

@@ -20,6 +20,18 @@ public class LcncConfigController {
 
     private final LcncService lcncService;
 
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<LcncForm>> createForm(@RequestBody LcncForm form) {
+        return ResponseEntity.ok(ApiResponse.ok(lcncService.createForm(form), "Form created successfully"));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<LcncForm>>> getAllForms() {
+        return ResponseEntity.ok(ApiResponse.ok(lcncService.getAllForms()));
+    }
+
     @GetMapping("/{formKey}")
     @PreAuthorize("hasAnyRole('ADMIN','INVENTORY')")
     public ResponseEntity<ApiResponse<LcncForm>> getFormSchema(@PathVariable String formKey) {

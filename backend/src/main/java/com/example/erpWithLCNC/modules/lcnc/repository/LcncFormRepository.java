@@ -9,4 +9,5 @@ import java.util.UUID;
 @Repository
 public interface LcncFormRepository extends JpaRepository<LcncForm, UUID> {
     Optional<LcncForm> findByFormKey(String formKey);
+    boolean existsByFormKey(String formKey);
 }

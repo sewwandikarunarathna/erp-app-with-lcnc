@@ -21,7 +21,7 @@ const Login: React.FC = () => {
       if (apiResponse.success && apiResponse.data) {
         localStorage.setItem('token', apiResponse.data.token);
         localStorage.setItem('user', JSON.stringify(apiResponse.data));
-        navigate('/dashboard');
+        navigate('/portal');
       } else {
         setError(apiResponse.message || 'Login failed');
       }

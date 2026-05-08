@@ -53,20 +53,27 @@ public class LcncService {
 
         extendedFields.forEach((key, value) -> {
             LcncEntityExtendedData data = existingMap.get(key);
-            JsonNode jsonValue = objectMapper.valueToTree(value);
             
             if (data != null) {
-                data.setFieldValue(jsonValue);
+                data.setFieldValue(value);
             } else {
                 data = LcncEntityExtendedData.builder()
                         .entityName(entityName)
                         .entityId(entityId)
                         .fieldKey(key)
-                        .fieldValue(jsonValue)
+                        .fieldValue(value)
                         .build();
             }
             extendedDataRepository.save(data);
         });
+    }
+
+    @Transactional
+    public LcncForm createForm(LcncForm form) {
+        if (formRepository.existsByFormKey(form.getFormKey())) {
+            throw new RuntimeException("Form key already exists: " + form.getFormKey());
+        }
+        return formRepository.save(form);
     }
 
     @Transactional
@@ -81,5 +88,10 @@ public class LcncService {
         }
         
         return formRepository.save(form);
+    }
+
+    @Transactional(readOnly = true)
+    public List<LcncForm> getAllForms() {
+        return formRepository.findAll();
     }
 }

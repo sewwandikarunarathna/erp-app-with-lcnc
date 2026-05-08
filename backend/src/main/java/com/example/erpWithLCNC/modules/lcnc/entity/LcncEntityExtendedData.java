@@ -30,7 +30,7 @@ public class LcncEntityExtendedData {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "field_value")
-    private JsonNode fieldValue;
+    private Object fieldValue;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
