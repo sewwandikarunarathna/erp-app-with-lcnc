@@ -18,20 +18,45 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     Page<Product> findByActiveTrue(Pageable pageable);
 
-    @Query("""
-        SELECT p FROM Product p
-        WHERE p.active = true
-        AND (:search IS NULL
-             OR LOWER(p.name) LIKE :search
-             OR LOWER(p.sku)  LIKE :search)
-
-        AND (:categoryId IS NULL OR p.category.id = :categoryId)
-        """)
+    @Query(value = """
+        SELECT DISTINCT p.*
+        FROM products p
+        LEFT JOIN lcnc_entity_extended_data led
+            ON led.entity_id = p.id
+            AND led.entity_name = 'product'
+        WHERE p.is_active = true
+        AND (
+            :search IS NULL
+            OR LOWER(p.name)                                   LIKE :search
+            OR LOWER(p.sku)                                    LIKE :search
+            OR LOWER(COALESCE(p.description, ''))              LIKE :search
+            OR LOWER(COALESCE(led.field_value #>> '{}', ''))   LIKE :search
+        )
+        AND (:categoryId IS NULL OR p.category_id = CAST(:categoryId AS uuid))
+        """,
+        countQuery = """
+        SELECT COUNT(DISTINCT p.id)
+        FROM products p
+        LEFT JOIN lcnc_entity_extended_data led
+            ON led.entity_id = p.id
+            AND led.entity_name = 'product'
+        WHERE p.is_active = true
+        AND (
+            :search IS NULL
+            OR LOWER(p.name)                                   LIKE :search
+            OR LOWER(p.sku)                                    LIKE :search
+            OR LOWER(COALESCE(p.description, ''))              LIKE :search
+            OR LOWER(COALESCE(led.field_value #>> '{}', ''))   LIKE :search
+        )
+        AND (:categoryId IS NULL OR p.category_id = CAST(:categoryId AS uuid))
+        """,
+        nativeQuery = true)
     Page<Product> searchProducts(
             @Param("search") String search,
             @Param("categoryId") UUID categoryId,
             Pageable pageable
     );
+
 
 
     // Fixed: JOIN through the relationship field s.product, not ON s.product = p

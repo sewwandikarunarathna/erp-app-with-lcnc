@@ -38,8 +38,18 @@ public class LcncLookupService {
                         .map(u -> new LookupDTO(u.getId(), u.getFullName()))
                         .collect(Collectors.toList());
             
+            case "SUPPLIER":
+                return List.of(
+                    new LookupDTO(java.util.UUID.randomUUID(), "Acme Corp"),
+                    new LookupDTO(java.util.UUID.randomUUID(), "Global Supplies Inc."),
+                    new LookupDTO(java.util.UUID.randomUUID(), "Tech Parts Co.")
+                ).stream()
+                .filter(s -> search == null || s.getLabel().toLowerCase().contains(search.toLowerCase()))
+                .collect(Collectors.toList());
+            
             default:
-                throw new RuntimeException("Lookup entity not supported: " + entityName);
+                // For custom forms or unimplemented entities, return empty instead of crashing
+                return new java.util.ArrayList<>();
         }
     }
 

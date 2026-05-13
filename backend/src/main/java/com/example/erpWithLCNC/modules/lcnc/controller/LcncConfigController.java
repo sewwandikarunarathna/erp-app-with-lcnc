@@ -1,6 +1,7 @@
 package com.example.erpWithLCNC.modules.lcnc.controller;
 
 import com.example.erpWithLCNC.common.dto.ApiResponse;
+import com.example.erpWithLCNC.modules.lcnc.dto.FormSubmissionDTO;
 import com.example.erpWithLCNC.modules.lcnc.entity.LcncForm;
 import com.example.erpWithLCNC.modules.lcnc.entity.LcncFormField;
 import com.example.erpWithLCNC.modules.lcnc.service.LcncService;
@@ -11,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/lcnc/forms")
@@ -46,4 +48,23 @@ public class LcncConfigController {
     ) {
         return ResponseEntity.ok(ApiResponse.ok(lcncService.updateFormFields(formKey, fields), "Form schema updated"));
     }
+
+    @PostMapping("/{formKey}/submit")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<FormSubmissionDTO>> submitForm(
+            @PathVariable String formKey,
+            @RequestBody Map<String, Object> data
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok(lcncService.submitForm(formKey, data), "Form submitted successfully"));
+    }
+
+    @GetMapping("/{formKey}/submissions")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<FormSubmissionDTO>>> getSubmissions(
+            @PathVariable String formKey,
+            @RequestParam(required = false) String search
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok(lcncService.getSubmissions(formKey, search)));
+    }
 }
+

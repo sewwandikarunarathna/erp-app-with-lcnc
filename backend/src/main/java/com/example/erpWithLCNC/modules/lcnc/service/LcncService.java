@@ -1,11 +1,14 @@
 package com.example.erpWithLCNC.modules.lcnc.service;
 
+import com.example.erpWithLCNC.modules.lcnc.dto.FormSubmissionDTO;
 import com.example.erpWithLCNC.modules.lcnc.entity.LcncEntityExtendedData;
 import com.example.erpWithLCNC.modules.lcnc.entity.LcncForm;
 import com.example.erpWithLCNC.modules.lcnc.entity.LcncFormField;
+import com.example.erpWithLCNC.modules.lcnc.entity.LcncFormSubmission;
 import com.example.erpWithLCNC.modules.lcnc.repository.LcncEntityExtendedDataRepository;
 import com.example.erpWithLCNC.modules.lcnc.repository.LcncFormFieldRepository;
 import com.example.erpWithLCNC.modules.lcnc.repository.LcncFormRepository;
+import com.example.erpWithLCNC.modules.lcnc.repository.LcncFormSubmissionRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ public class LcncService {
     private final LcncFormRepository formRepository;
     private final LcncFormFieldRepository fieldRepository;
     private final LcncEntityExtendedDataRepository extendedDataRepository;
+    private final LcncFormSubmissionRepository submissionRepository;
     private final ObjectMapper objectMapper;
 
     public LcncForm getFormSchema(String formKey) {
@@ -93,5 +97,32 @@ public class LcncService {
     @Transactional(readOnly = true)
     public List<LcncForm> getAllForms() {
         return formRepository.findAll();
+    }
+
+    @Transactional
+    public FormSubmissionDTO submitForm(String formKey, Map<String, Object> data) {
+        LcncForm form = getFormSchema(formKey);
+        LcncFormSubmission submission = LcncFormSubmission.builder()
+                .form(form)
+                .data(data)
+                .build();
+        LcncFormSubmission saved = submissionRepository.save(submission);
+        return toSubmissionDTO(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<FormSubmissionDTO> getSubmissions(String formKey, String search) {
+        LcncForm form = getFormSchema(formKey);
+        String searchPattern = (search != null && !search.trim().isEmpty()) ? "%" + search.toLowerCase() + "%" : null;
+        
+        return submissionRepository.findByFormIdAndSearch(form.getId(), searchPattern)
+                .stream()
+                .map(this::toSubmissionDTO)
+                .collect(Collectors.toList());
+    }
+
+
+    private FormSubmissionDTO toSubmissionDTO(LcncFormSubmission s) {
+        return new FormSubmissionDTO(s.getId(), s.getData(), s.getReference(), s.getSubmittedAt());
     }
 }

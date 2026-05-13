@@ -221,5 +221,3 @@ function DashboardWidget({ widget }) {
 **4. Form schema changes create a new version** — never mutate a live schema in place. The form canvas always loads `version = latest`, but submitted data is always linked to the version active at submission time.
 
 **5. Extended field values use JSONB not VARCHAR** — storing `1500.00` as a JSONB number (not a string) means you can aggregate, filter, and sort extended fields in reports without casting.
-
-Want me to go deeper on any specific layer — the React drag-and-drop builder mechanics, the Spring Boot security layer, or the report query builder's column registry and aggregation logic?
