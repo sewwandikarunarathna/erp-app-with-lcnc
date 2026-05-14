@@ -214,10 +214,6 @@ function DashboardWidget({ widget }) {
 
 **1. Never use JPA dynamic queries for reports** — use `JdbcTemplate` with a whitelist-validated column registry. JPA's dynamic query support is not built for this pattern and leads to either N+1 issues or unsafe string concatenation.
 
-**2. Always whitelist column names** in the query builder. Never interpolate user-supplied field names directly into SQL — maintain a `DataSourceColumnRegistry` that maps each data source to its allowed columns.
-
-**3. System fields are read-only in the builder** — mark them `is_system_field = TRUE` and render them as locked in the canvas. Only extended fields can be edited/deleted.
-
 **4. Form schema changes create a new version** — never mutate a live schema in place. The form canvas always loads `version = latest`, but submitted data is always linked to the version active at submission time.
 
 **5. Extended field values use JSONB not VARCHAR** — storing `1500.00` as a JSONB number (not a string) means you can aggregate, filter, and sort extended fields in reports without casting.

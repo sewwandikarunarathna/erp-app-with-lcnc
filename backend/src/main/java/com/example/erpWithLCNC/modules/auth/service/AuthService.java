@@ -42,6 +42,7 @@ public class AuthService {
                 .collect(Collectors.toSet());
 
         return LoginResponse.builder()
+                .id(user.getId())
                 .token(jwtUtil.generateToken(user.getEmail(), roles))
                 .email(user.getEmail())
                 .fullName(user.getFullName())
